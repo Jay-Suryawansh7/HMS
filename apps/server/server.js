@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const authRoutes = require('./routes/authRoutes');
-const staffRoutes = require('./routes/staffRoutes');
-const appointmentsRoutes = require('./routes/appointmentsRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const staffRoutes = require('./src/routes/staffRoutes');
+const appointmentsRoutes = require('./src/routes/appointmentsRoutes');
 // Import redis client to ensure connection starts
-require('./config/redisClient');
+require('./src/config/redisClient');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,11 +23,11 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/appointments', appointmentsRoutes);
-app.use('/api/tasks', require('./routes/taskRoutes'));
-app.use('/api/patients', require('./routes/patientsRoutes'));
-app.use('/api/prescriptions', require('./routes/prescriptionsRoutes'));
-app.use('/api/platform', require('./routes/platformAdminRoutes'));
-app.use('/api', require('./routes/onboardingRoutes'));
+app.use('/api/tasks', require('./src/routes/taskRoutes'));
+app.use('/api/patients', require('./src/routes/patientsRoutes'));
+app.use('/api/prescriptions', require('./src/routes/prescriptionsRoutes'));
+app.use('/api/platform', require('./src/routes/platformAdminRoutes'));
+app.use('/api', require('./src/routes/onboardingRoutes'));
 
 app.get('/', (req, res) => {
     res.send('HMS API is running');
