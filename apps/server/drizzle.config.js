@@ -10,6 +10,6 @@ export default defineConfig({
         password: process.env.PG_PASSWORD || "postgrespassword",
         database: process.env.PG_DATABASE || "hms_master",
         port: Number(process.env.PG_PORT) || 5432,
-        ssl: false,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     },
 });
