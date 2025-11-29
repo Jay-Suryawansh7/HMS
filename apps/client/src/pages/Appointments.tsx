@@ -27,7 +27,7 @@ export function Appointments() {
       const token = localStorage.getItem("accessToken");
       const hospitalId = localStorage.getItem("hospitalId");
       
-      const response = await axios.get(`http://localhost:5001/api/appointments`, {
+      const response = await axios.get(`https://hms-server-944g.onrender.com/api/appointments`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "x-hospital-id": hospitalId,

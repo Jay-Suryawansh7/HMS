@@ -52,7 +52,7 @@ export function PatientTable({ searchParams, onPageChange }: PatientTableProps) 
   const getAvatarUrl = (photoUrl?: string) => {
     if (!photoUrl) return null;
     // Assuming the backend serves files from /uploads
-    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://hms-server-944g.onrender.com';
     return `${baseUrl}${photoUrl}`;
   };
 

@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Users as UsersIcon, Mail, Shield, AlertCircle, Loader2 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://hms-server-944g.onrender.com/api';
 
 interface StaffMember {
   id: number;
