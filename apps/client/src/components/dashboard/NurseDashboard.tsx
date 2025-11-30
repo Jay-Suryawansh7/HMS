@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, AlertCircle, ClipboardList, TrendingUp } from "lucide-react";
+import { Users, AlertCircle, ClipboardList, TrendingUp, Pill } from "lucide-react";
 import { getNurseDashboardStats } from "@/services/dashboardService";
 import { STATIC_NURSE_DATA } from "@/utils/staticData";
 
@@ -63,6 +63,7 @@ export function NurseDashboard() {
     Users,
     ClipboardList,
     AlertCircle,
+    Pill,
   };
 
   return (
