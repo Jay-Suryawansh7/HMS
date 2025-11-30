@@ -1,130 +1,71 @@
-const { pool } = require('../src/config/dbConfigPg');
 require('dotenv').config();
+const { pool } = require('../src/config/dbConfigPg');
 
-/**
- * Migration script to add prescriptions and prescription_items tables
- * to all existing tenant databases
- */
-
-async function migratePrescriptions() {
+const migratePrescriptions = async () => {
     const client = await pool.connect();
 
     try {
-        console.log('Starting prescription tables migration...');
+        console.log('Starting prescriptions table migration...');
 
-        // Get all tenant databases from public schema
-        await client.query('SET search_path TO public');
-        const tenantsResult = await client.query('SELECT db_name FROM tenants');
-        const tenants = tenantsResult.rows;
+        // Get all tenant schemas
+        const tenantsResult = await client.query(`
+            SELECT db_name FROM tenants
+        `);
 
-        console.log(`Found ${tenants.length} tenant(s) to migrate`);
+        console.log(`Found ${tenantsResult.rows.length} tenant(s) to migrate`);
 
-        for (const tenant of tenants) {
-            const dbName = tenant.db_name;
-            console.log(`\nMigrating tenant: ${dbName}`);
+        for (const tenant of tenantsResult.rows) {
+            const schemaName = tenant.db_name;
+            console.log(`\nMigrating schema: ${schemaName}`);
 
             try {
-                // Switch to tenant schema
-                await client.query(`SET search_path TO "${dbName}"`);
+                // Set search path to tenant schema
+                await client.query(`SET search_path TO "${schemaName}"`);
 
-                // Check if prescriptions table already exists
-                const checkPrescriptionsTable = await client.query(`
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE table_schema = '${dbName}'
-                        AND table_name = 'prescriptions'
+                // Create prescriptions table
+                await client.query(`
+                    CREATE TABLE IF NOT EXISTS "prescriptions" (
+                        "id" serial PRIMARY KEY NOT NULL,
+                        "prescription_id" varchar(50) NOT NULL UNIQUE,
+                        "doctor_id" integer NOT NULL,
+                        "patient_id" integer NOT NULL,
+                        "notes" text,
+                        "created_at" timestamp DEFAULT now(),
+                        CONSTRAINT "prescriptions_doctor_id_users_id_fk" FOREIGN KEY ("doctor_id") REFERENCES "users"("id") ON DELETE no action ON UPDATE no action,
+                        CONSTRAINT "prescriptions_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "patients"("id") ON DELETE no action ON UPDATE no action
                     );
                 `);
+                console.log('  ✓ Created/Verified prescriptions table');
 
-                if (checkPrescriptionsTable.rows[0].exists) {
-                    console.log(`  ✓ prescriptions table already exists, skipping...`);
-                } else {
-                    // Create prescriptions table
-                    await client.query(`
-                        CREATE TABLE prescriptions (
-                            id SERIAL PRIMARY KEY,
-                            prescription_id VARCHAR(50) NOT NULL UNIQUE,
-                            doctor_id INTEGER NOT NULL REFERENCES users(id),
-                            patient_id INTEGER NOT NULL REFERENCES patients(id),
-                            notes TEXT,
-                            created_at TIMESTAMP DEFAULT NOW()
-                        );
-                    `);
-                    console.log(`  ✓ Created prescriptions table`);
-
-                    // Create indexes
-                    await client.query(`
-                        CREATE INDEX prescription_id_idx ON prescriptions(prescription_id);
-                    `);
-                    await client.query(`
-                        CREATE INDEX prescription_doctor_id_idx ON prescriptions(doctor_id);
-                    `);
-                    await client.query(`
-                        CREATE INDEX prescription_patient_id_idx ON prescriptions(patient_id);
-                    `);
-                    console.log(`  ✓ Created indexes for prescriptions table`);
-                }
-
-                // Check if prescription_items table already exists
-                const checkItemsTable = await client.query(`
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE table_schema = '${dbName}'
-                        AND table_name = 'prescription_items'
+                // Create prescription_items table
+                await client.query(`
+                    CREATE TABLE IF NOT EXISTS "prescription_items" (
+                        "id" serial PRIMARY KEY NOT NULL,
+                        "prescription_id" integer NOT NULL,
+                        "medicine_name" varchar(255) NOT NULL,
+                        "dosage" varchar(100) NOT NULL,
+                        "frequency" varchar(100) NOT NULL,
+                        "duration" varchar(100) NOT NULL,
+                        "instructions" text,
+                        CONSTRAINT "prescription_items_prescription_id_prescriptions_id_fk" FOREIGN KEY ("prescription_id") REFERENCES "prescriptions"("id") ON DELETE CASCADE ON UPDATE no action
                     );
                 `);
+                console.log('  ✓ Created/Verified prescription_items table');
 
-                if (checkItemsTable.rows[0].exists) {
-                    console.log(`  ✓ prescription_items table already exists, skipping...`);
-                } else {
-                    // Create prescription_items table
-                    await client.query(`
-                        CREATE TABLE prescription_items (
-                            id SERIAL PRIMARY KEY,
-                            prescription_id INTEGER NOT NULL REFERENCES prescriptions(id),
-                            medicine_name VARCHAR(255) NOT NULL,
-                            dosage VARCHAR(100) NOT NULL,
-                            frequency VARCHAR(100) NOT NULL,
-                            duration VARCHAR(100) NOT NULL,
-                            instructions TEXT
-                        );
-                    `);
-                    console.log(`  ✓ Created prescription_items table`);
-
-                    // Create index
-                    await client.query(`
-                        CREATE INDEX prescription_item_prescription_id_idx ON prescription_items(prescription_id);
-                    `);
-                    console.log(`  ✓ Created index for prescription_items table`);
-                }
-
-                console.log(`  ✅ Migration completed for ${dbName}`);
-
-            } catch (error) {
-                console.error(`  ❌ Error migrating tenant ${dbName}:`, error.message);
-                // Continue with other tenants
+            } catch (err) {
+                console.error(`  ✗ Error migrating ${schemaName}:`, err.message);
             }
         }
 
-        console.log('\n✅ All tenant migrations completed!');
+        console.log('\n✓ Migration completed!');
 
     } catch (error) {
-        console.error('Migration error:', error);
-        throw error;
+        console.error('Migration script failed:', error);
+        process.exit(1);
     } finally {
-        await client.query('SET search_path TO public');
         client.release();
         await pool.end();
     }
-}
+};
 
-// Run migration
-migratePrescriptions()
-    .then(() => {
-        console.log('Migration script finished successfully');
-        process.exit(0);
-    })
-    .catch((error) => {
-        console.error('Migration script failed:', error);
-        process.exit(1);
-    });
+migratePrescriptions();
