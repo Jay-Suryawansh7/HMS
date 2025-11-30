@@ -46,10 +46,12 @@ export default function CreateAppointment() {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/patients`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setPatients(response.data.data || []);
+      const data = response.data?.data || response.data || [];
+      setPatients(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch patients:', error);
       toast.error('Failed to load patients');
+      setPatients([]);
     }
   };
 
@@ -59,10 +61,12 @@ export default function CreateAppointment() {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/staff?role=DOCTOR`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setDoctors(response.data || []);
+      const data = response.data || [];
+      setDoctors(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
       toast.error('Failed to load doctors');
+      setDoctors([]);
     }
   };
 
