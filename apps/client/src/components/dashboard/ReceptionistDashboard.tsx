@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, TrendingUp } from "lucide-react";
+import { Calendar, Users, TrendingUp, UserCheck, Clock } from "lucide-react";
 import { getReceptionistDashboardStats } from "@/services/dashboardService";
 import { STATIC_RECEPTIONIST_DATA } from "@/utils/staticData";
 
@@ -62,6 +62,8 @@ export function ReceptionistDashboard() {
   const iconMap = {
     Calendar,
     Users,
+    UserCheck,
+    Clock,
   };
 
   return (
