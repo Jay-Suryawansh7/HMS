@@ -19,7 +19,7 @@ exports.getAllAppointments = async (req, res) => {
                 a.patient_id,
                 a.time,
                 a.status,
-                p.name as patient_name,
+                p.first_name || ' ' || p.last_name as patient_name,
                 d.name as doctor_name
             FROM appointments a
             JOIN patients p ON a.patient_id = p.id
