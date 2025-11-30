@@ -1,52 +1,75 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Activity, Pill, UserPlus, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const stats = [
-  {
-    title: "Patients Assigned",
-    value: "15",
-    change: "Ward A & B",
-    icon: Users,
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Vitals Pending",
-    value: "4",
-    change: "Due in 30 mins",
-    icon: Activity,
-    gradient: "from-orange-500 to-red-500",
-  },
-  {
-    title: "Medication Due",
-    value: "8",
-    change: "Next round at 2 PM",
-    icon: Pill,
-    gradient: "from-green-500 to-emerald-500",
-  },
-  {
-    title: "New Admissions",
-    value: "3",
-    change: "Since shift start",
-    icon: UserPlus,
-    gradient: "from-purple-500 to-pink-500",
-  },
-];
-
-const vitalsData = [
-  { time: '8 AM', count: 15 },
-  { time: '10 AM', count: 12 },
-  { time: '12 PM', count: 14 },
-  { time: '2 PM', count: 8 },
-  { time: '4 PM', count: 10 },
-];
+import { Users, AlertCircle, ClipboardList, TrendingUp } from "lucide-react";
+import { getNurseDashboardStats } from "@/services/dashboardService";
+import { STATIC_NURSE_DATA } from "@/utils/staticData";
 
 export function NurseDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(STATIC_NURSE_DATA.stats);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getNurseDashboardStats();
+      
+      if (data.hasData) {
+        // Use real data
+        const realStats = [
+          {
+            title: "Assigned Patients",
+            value: data.stats.assignedPatients.toString(),
+            change: "Current assignments",
+            icon: "Users" as const,
+            gradient: "from-blue-500 to-cyan-500",
+          },
+          {
+            title: "Pending Tasks",
+            value: data.stats.assignedTasks.toString(),
+            change: "Requires attention",
+            icon: "ClipboardList" as const,
+            gradient: "from-purple-500 to-pink-500",
+          },
+          {
+            title: "Critical Alerts",
+            value: data.stats.criticalAlerts.toString(),
+            change: "High priority",
+            icon: "AlertCircle" as const,
+            gradient: "from-red-500 to-rose-500",
+          },
+        ];
+
+        setStats(realStats);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  const iconMap = {
+    Users,
+    ClipboardList,
+    AlertCircle,
+  };
+
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
-          const Icon = stat.icon;
+          const Icon = iconMap[stat.icon as keyof typeof iconMap];
           return (
             <Card key={stat.title} className="relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5`} />
@@ -68,51 +91,28 @@ export function NurseDashboard() {
         })}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Vitals Check Schedule */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Vitals Check Schedule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={vitalsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="time" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
-                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Recent Tasks */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Tasks</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ActivityItem 
-              title="Administer antibiotics to Bed 12"
-              time="Due now"
-              type="urgent"
-            />
-            <ActivityItem 
-              title="Check vitals for Patient #456"
-              time="15 mins ago"
-              type="completed"
-            />
-            <ActivityItem 
-              title="Dr. Jones requested update on Bed 5"
-              time="1 hour ago"
-              type="info"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Tasks</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ActivityItem 
+            title="Check vitals for assigned patients"
+            time="Due now"
+            type="urgent"
+          />
+          <ActivityItem 
+            title="Medication round completed"
+            time="15 mins ago"
+            type="completed"
+          />
+          <ActivityItem 
+            title="Doctor requested update"
+            time="1 hour ago"
+            type="info"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

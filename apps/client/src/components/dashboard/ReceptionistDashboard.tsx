@@ -1,55 +1,74 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Phone, UserPlus, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const stats = [
-  {
-    title: "Today's Appointments",
-    value: "42",
-    change: "+5 from yesterday",
-    icon: Calendar,
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Doctors Available",
-    value: "8",
-    change: "Out of 12",
-    icon: Users,
-    gradient: "from-green-500 to-emerald-500",
-  },
-  {
-    title: "New Registrations",
-    value: "15",
-    change: "Since morning",
-    icon: UserPlus,
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
-    title: "Pending Inquiries",
-    value: "6",
-    change: "Needs follow-up",
-    icon: Phone,
-    gradient: "from-orange-500 to-red-500",
-  },
-];
-
-const peakHoursData = [
-  { time: '9 AM', visitors: 25 },
-  { time: '10 AM', visitors: 40 },
-  { time: '11 AM', visitors: 35 },
-  { time: '12 PM', visitors: 20 },
-  { time: '1 PM', visitors: 15 },
-  { time: '2 PM', visitors: 30 },
-  { time: '3 PM', visitors: 28 },
-  { time: '4 PM', visitors: 22 },
-];
+import { Calendar, Users, TrendingUp } from "lucide-react";
+import { getReceptionistDashboardStats } from "@/services/dashboardService";
+import { STATIC_RECEPTIONIST_DATA } from "@/utils/staticData";
 
 export function ReceptionistDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(STATIC_RECEPTIONIST_DATA.stats);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getReceptionistDashboardStats();
+      
+      if (data.hasData) {
+        // Use real data
+        const realStats = [
+          {
+            title: "Today's Check-ins",
+            value: data.stats.todayCheckIns.toString(),
+            change: "New registrations",
+            icon: "Users" as const,
+            gradient: "from-blue-500 to-cyan-500",
+          },
+          {
+            title: "Today's Appointments",
+            value: data.stats.todayAppointments.toString(),
+            change: "Scheduled today",
+            icon: "Calendar" as const,
+            gradient: "from-green-500 to-emerald-500",
+          },
+          {
+            title: "Pending Appointments",
+            value: data.stats.pendingAppointments.toString(),
+            change: "Awaiting confirmation",
+            icon: "Calendar" as const,
+            gradient: "from-purple-500 to-pink-500",
+          },
+        ];
+
+        setStats(realStats);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  const iconMap = {
+    Calendar,
+    Users,
+  };
+
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
-          const Icon = stat.icon;
+          const Icon = iconMap[stat.icon as keyof typeof iconMap];
           return (
             <Card key={stat.title} className="relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5`} />
@@ -71,51 +90,28 @@ export function ReceptionistDashboard() {
         })}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Peak Hours Chart */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Visitor Peak Hours</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={peakHoursData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="time" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
-                <Bar dataKey="visitors" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Recent Inquiries */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Inquiries</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ActivityItem 
-              title="Appointment request: Dr. Smith"
-              time="5 mins ago"
-              type="new"
-            />
-            <ActivityItem 
-              title="Insurance query: Patient #789"
-              time="20 mins ago"
-              type="pending"
-            />
-            <ActivityItem 
-              title="New patient registration completed"
-              time="1 hour ago"
-              type="completed"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ActivityItem 
+            title="New appointment scheduled"
+            time="5 mins ago"
+            type="new"
+          />
+          <ActivityItem 
+            title="Patient check-in completed"
+            time="20 mins ago"
+            type="completed"
+          />
+          <ActivityItem 
+            title="Appointment confirmation pending"
+            time="1 hour ago"
+            type="pending"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

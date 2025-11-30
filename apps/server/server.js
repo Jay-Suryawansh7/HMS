@@ -27,7 +27,9 @@ app.use('/api/tasks', require('./src/routes/taskRoutes'));
 app.use('/api/patients', require('./src/routes/patientsRoutes'));
 app.use('/api/prescriptions', require('./src/routes/prescriptionsRoutes'));
 app.use('/api/platform', require('./src/routes/platformAdminRoutes'));
+app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api', require('./src/routes/onboardingRoutes'));
+
 
 app.get('/', (req, res) => {
     res.send('HMS API is running');

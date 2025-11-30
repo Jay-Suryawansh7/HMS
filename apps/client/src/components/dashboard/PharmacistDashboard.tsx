@@ -1,55 +1,74 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pill, AlertTriangle, ShoppingCart, ClipboardList, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const stats = [
-  {
-    title: "Pending Prescriptions",
-    value: "18",
-    change: "Urgent: 3",
-    icon: ClipboardList,
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Low Stock Items",
-    value: "5",
-    change: "Reorder needed",
-    icon: AlertTriangle,
-    gradient: "from-red-500 to-orange-500",
-  },
-  {
-    title: "Expiring Medicines",
-    value: "12",
-    change: "Within 30 days",
-    icon: Pill,
-    gradient: "from-yellow-500 to-amber-500",
-  },
-  {
-    title: "Today's Sales",
-    value: "$1,250",
-    change: "+12% vs yesterday",
-    icon: ShoppingCart,
-    gradient: "from-green-500 to-emerald-500",
-  },
-];
-
-const salesData = [
-  { time: '9 AM', amount: 120 },
-  { time: '10 AM', amount: 250 },
-  { time: '11 AM', amount: 180 },
-  { time: '12 PM', amount: 300 },
-  { time: '1 PM', amount: 150 },
-  { time: '2 PM', amount: 200 },
-  { time: '3 PM', amount: 280 },
-  { time: '4 PM', amount: 220 },
-];
+import { FileText, CheckCircle, TrendingUp } from "lucide-react";
+import { getPharmacistDashboardStats } from "@/services/dashboardService";
+import { STATIC_PHARMACIST_DATA } from "@/utils/staticData";
 
 export function PharmacistDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(STATIC_PHARMACIST_DATA.stats);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getPharmacistDashboardStats();
+      
+      if (data.hasData) {
+        // Use real data
+        const realStats = [
+          {
+            title: "Pending Prescriptions",
+            value: data.stats.pendingPrescriptions.toString(),
+            change: "Awaiting dispensation",
+            icon: "FileText" as const,
+            gradient: "from-blue-500 to-cyan-500",
+          },
+          {
+            title: "Dispensed Today",
+            value: data.stats.todayDispensed.toString(),
+            change: "Completed",
+            icon: "CheckCircle" as const,
+            gradient: "from-green-500 to-emerald-500",
+          },
+          {
+            title: "Total Prescriptions",
+            value: data.stats.totalPrescriptions.toString(),
+            change: "All time",
+            icon: "FileText" as const,
+            gradient: "from-purple-500 to-pink-500",
+          },
+        ];
+
+        setStats(realStats);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  const iconMap = {
+    FileText,
+    CheckCircle,
+  };
+
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
-          const Icon = stat.icon;
+          const Icon = iconMap[stat.icon as keyof typeof iconMap];
           return (
             <Card key={stat.title} className="relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5`} />
@@ -71,51 +90,28 @@ export function PharmacistDashboard() {
         })}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Sales Trend */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Hourly Sales Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="time" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                />
-                <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Recent Requests */}
-        <Card className="shadow-lg border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Requests</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ActivityItem 
-              title="Prescription #1234 - Amoxicillin"
-              time="2 mins ago"
-              type="new"
-            />
-            <ActivityItem 
-              title="Stock check: Paracetamol"
-              time="1 hour ago"
-              type="completed"
-            />
-            <ActivityItem 
-              title="Expiry check for batch #998"
-              time="2 hours ago"
-              type="pending"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="text-lg">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <ActivityItem 
+            title="Prescription dispensed"
+            time="2 mins ago"
+            type="completed"
+          />
+          <ActivityItem 
+            title="Stock check requested"
+            time="1 hour ago"
+            type="pending"
+          />
+          <ActivityItem 
+            title="New prescription received"
+            time="2 hours ago"
+            type="new"
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

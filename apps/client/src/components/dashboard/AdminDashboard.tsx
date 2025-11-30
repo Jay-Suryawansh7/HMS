@@ -1,71 +1,106 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, Activity, DollarSign, TrendingUp } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const stats = [
-  {
-    title: "Total Patients",
-    value: "1,234",
-    change: "+20.1% from last month",
-    icon: Users,
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Appointments",
-    value: "+573",
-    change: "+201 since last hour",
-    icon: Calendar,
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
-    title: "Active Doctors",
-    value: "42",
-    change: "+2 new this week",
-    icon: Activity,
-    gradient: "from-green-500 to-emerald-500",
-  },
-  {
-    title: "Revenue",
-    value: "$45,231.89",
-    change: "+19% from last month",
-    icon: DollarSign,
-    gradient: "from-orange-500 to-red-500",
-  },
-];
-
-const patientGrowthData = [
-  { month: 'Jan', patients: 890 },
-  { month: 'Feb', patients: 950 },
-  { month: 'Mar', patients: 1020 },
-  { month: 'Apr', patients: 1100 },
-  { month: 'May', patients: 1180 },
-  { month: 'Jun', patients: 1234 },
-];
-
-const appointmentsData = [
-  { day: 'Mon', count: 45 },
-  { day: 'Tue', count: 52 },
-  { day: 'Wed', count: 49 },
-  { day: 'Thu', count: 63 },
-  { day: 'Fri', count: 58 },
-  { day: 'Sat', count: 35 },
-  { day: 'Sun', count: 28 },
-];
-
-const departmentData = [
-  { name: 'Cardiology', value: 320, color: '#3b82f6' },
-  { name: 'Neurology', value: 280, color: '#8b5cf6' },
-  { name: 'Orthopedics', value: 250, color: '#10b981' },
-  { name: 'Pediatrics', value: 200, color: '#f59e0b' },
-  { name: 'Others', value: 184, color: '#6b7280' },
-];
+import { getAdminDashboardStats } from "@/services/dashboardService";
+import { STATIC_ADMIN_DATA } from "@/utils/staticData";
 
 export function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(STATIC_ADMIN_DATA.stats);
+  const [patientGrowthData, setPatientGrowthData] = useState(STATIC_ADMIN_DATA.patientGrowthData);
+  const [appointmentsData, setAppointmentsData] = useState(STATIC_ADMIN_DATA.appointmentsData);
+  const departmentData = STATIC_ADMIN_DATA.departmentData; // Always use static for department distribution
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getAdminDashboardStats();
+      
+      if (data.hasData) {
+        // Use real data
+        const realStats = [
+          {
+            title: "Total Patients",
+            value: data.stats.totalPatients.toString(),
+            change: "Real-time data",
+            icon: "Users" as const,
+            gradient: "from-blue-500 to-cyan-500",
+          },
+          {
+            title: "Appointments",
+            value: data.stats.totalAppointments.toString(),
+            change: "Total appointments",
+            icon: "Calendar" as const,
+            gradient: "from-purple-500 to-pink-500",
+          },
+          {
+            title: "Active Doctors",
+            value: data.stats.activeDoctors.toString(),
+            change: "Registered doctors",
+            icon: "Activity" as const,
+            gradient: "from-green-500 to-emerald-500",
+          },
+          {
+            title: "Revenue",
+            value: data.stats.revenue ? `$${data.stats.revenue.toFixed(2)}` : "N/A",
+            change: data.stats.revenue ? "This month" : "Not tracked yet",
+            icon: "DollarSign" as const,
+            gradient: "from-orange-500 to-red-500",
+          },
+        ];
+
+        setStats(realStats);
+
+        // Use real patient growth data if available
+        if (data.patientGrowthData && data.patientGrowthData.length > 0) {
+          setPatientGrowthData(data.patientGrowthData.map((item: any) => ({
+            month: item.month,
+            patients: typeof item.patients === 'string' ? parseInt(item.patients) : item.patients
+          })));
+        }
+
+        // Use real appointments data if available
+        if (data.appointmentsData && data.appointmentsData.length > 0) {
+          setAppointmentsData(data.appointmentsData.map((item: any) => ({
+            day: item.day,
+            count: typeof item.count === 'string' ? parseInt(item.count) : item.count
+          })));
+        }
+      }
+      // If no data, keep using static data (already set as initial state)
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      // On error, keep using static data
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  // Map icon names to Lucide components
+  const iconMap = {
+    Users,
+    Calendar,
+    Activity,
+    DollarSign,
+  };
+
   return (
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
-          const Icon = stat.icon;
+          const Icon = iconMap[stat.icon as keyof typeof iconMap];
           return (
             <Card key={stat.title} className="relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5`} />
@@ -213,3 +248,4 @@ function ActivityItem({ title, time, type }: { title: string; time: string; type
     </div>
   );
 }
+
