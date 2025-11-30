@@ -157,6 +157,7 @@ function LoginForm({ setIsLogin }: { setIsLogin: (value: boolean) => void }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="username"
         />
       </div>
       <div className="space-y-2">
@@ -177,6 +178,7 @@ function LoginForm({ setIsLogin }: { setIsLogin: (value: boolean) => void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
       </div>
       <div className="space-y-2">
@@ -297,6 +299,7 @@ function SignupForm({ setIsLogin }: { setIsLogin: (value: boolean) => void }) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
+          autoComplete="new-password"
         />
       </div>
       <Button 
