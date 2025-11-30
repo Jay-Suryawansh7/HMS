@@ -39,7 +39,8 @@ export function Appointments() {
         },
       });
       
-      setAppointments(response.data.appointments || []);
+      const data = response.data?.appointments || response.data || [];
+      setAppointments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching appointments:", error);
       setAppointments([]);
