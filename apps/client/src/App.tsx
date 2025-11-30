@@ -11,6 +11,7 @@ import { Appointments } from '@/pages/Appointments';
 import Settings from '@/pages/Settings';
 import Prescriptions from '@/pages/Prescriptions';
 import CreatePrescription from '@/pages/CreatePrescription';
+import ViewPrescription from '@/pages/ViewPrescription';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import ChangePassword from '@/pages/ChangePassword';
@@ -42,6 +43,7 @@ function App() {
               <Route path="appointments" element={<Appointments />} />
               <Route path="prescriptions" element={<Prescriptions />} />
               <Route path="prescriptions/create" element={<CreatePrescription />} />
+              <Route path="prescriptions/:id" element={<ViewPrescription />} />
               <Route path="change-password" element={<ChangePassword />} />
               <Route path="settings" element={<Settings />} />
             </Route>
