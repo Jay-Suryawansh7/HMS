@@ -43,3 +43,45 @@ exports.getAllAppointments = async (req, res) => {
         client.release();
     }
 };
+
+exports.createAppointment = async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const dbName = req.tenantDbName; // From auth middleware
+        const { patientId, doctorId, time, status, reason } = req.body;
+
+        if (!dbName) {
+            return res.status(500).json({ message: 'Tenant database not resolved' });
+        }
+
+        // Validate required fields
+        if (!patientId || !doctorId || !time) {
+            return res.status(400).json({ message: 'Patient ID, Doctor ID, and time are required' });
+        }
+
+        // Switch to tenant schema
+        await client.query(`SET search_path TO "${dbName}"`);
+
+        const result = await client.query(`
+            INSERT INTO appointments (patient_id, doctor_id, time, status, reason)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+        `, [patientId, doctorId, time, status || 'SCHEDULED', reason || null]);
+
+        res.status(201).json({
+            success: true,
+            message: 'Appointment created successfully',
+            appointment: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create appointment',
+            error: error.message
+        });
+    } finally {
+        await client.query('SET search_path TO public');
+        client.release();
+    }
+};
