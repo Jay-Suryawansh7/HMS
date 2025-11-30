@@ -32,7 +32,6 @@ export default function CreateAppointment() {
     doctorId: '',
     date: '',
     time: '',
-    reason: '',
   });
 
   useEffect(() => {
@@ -108,8 +107,7 @@ export default function CreateAppointment() {
           patientId: parseInt(formData.patientId),
           doctorId: parseInt(formData.doctorId),
           time: dateTime.toISOString(),
-          status: 'SCHEDULED',
-          reason: formData.reason
+          status: 'SCHEDULED'
         },
         {
           headers: { 
@@ -219,16 +217,6 @@ export default function CreateAppointment() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="reason">Reason (Optional)</Label>
-              <Input
-                id="reason"
-                placeholder="Brief reason for visit"
-                value={formData.reason}
-                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-              />
             </div>
 
             <div className="flex justify-end gap-4 pt-4">
