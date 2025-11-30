@@ -13,7 +13,12 @@ interface Appointment {
   status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
 }
 
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+
 export function Appointments() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"ALL" | "SCHEDULED" | "COMPLETED" | "CANCELLED">("ALL");
@@ -27,7 +32,7 @@ export function Appointments() {
       const token = localStorage.getItem("accessToken");
       const hospitalId = localStorage.getItem("hospitalId");
       
-      const response = await axios.get(`https://hms-server-944g.onrender.com/api/appointments`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/appointments`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "x-hospital-id": hospitalId,
@@ -82,20 +87,30 @@ export function Appointments() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointments</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointments</h1>
+          <p className="text-muted-foreground">Manage and schedule patient appointments</p>
+        </div>
         
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as typeof filter)}
-            className="px-3 py-2 border rounded-lg bg-background text-sm"
-          >
-            <option value="ALL">All Appointments</option>
-            <option value="SCHEDULED">Scheduled</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as typeof filter)}
+              className="px-3 py-2 border rounded-lg bg-background text-sm"
+            >
+              <option value="ALL">All Appointments</option>
+              <option value="SCHEDULED">Scheduled</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+          
+          <Button onClick={() => navigate('/dashboard/appointments/create')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Book Appointment
+          </Button>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { Patients } from '@/pages/Patients';
 import { RegisterPatient } from '@/pages/RegisterPatient';
 import { Doctors } from '@/pages/Doctors';
 import { Appointments } from '@/pages/Appointments';
+import CreateAppointment from '@/pages/CreateAppointment';
 import Settings from '@/pages/Settings';
 import Prescriptions from '@/pages/Prescriptions';
 import CreatePrescription from '@/pages/CreatePrescription';
@@ -41,6 +42,7 @@ function App() {
               <Route path="patients/edit/:id" element={<RegisterPatient />} />
               <Route path="doctors" element={<Doctors />} />
               <Route path="appointments" element={<Appointments />} />
+              <Route path="appointments/create" element={<CreateAppointment />} />
               <Route path="prescriptions" element={<Prescriptions />} />
               <Route path="prescriptions/create" element={<CreatePrescription />} />
               <Route path="prescriptions/:id" element={<ViewPrescription />} />

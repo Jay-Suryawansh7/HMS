@@ -27,6 +27,9 @@ export function Sidebar() {
     if (item.label === 'Settings') {
       return user?.role === 'ADMIN';
     }
+    if (item.label === 'Prescriptions') {
+      return user?.role !== 'RECEPTIONIST';
+    }
     return true;
   });
 
