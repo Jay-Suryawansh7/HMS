@@ -16,12 +16,19 @@ const sidebarItems = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const filteredItems = sidebarItems.filter(item => {
+    if (item.label === 'Settings') {
+      return user?.role === 'ADMIN';
+    }
+    return true;
+  });
 
   return (
     <aside className="w-64 bg-gradient-to-b from-primary to-primary/90 text-primary-foreground h-screen flex flex-col fixed left-0 top-0 shadow-2xl z-50">
@@ -38,7 +45,7 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 p-4 space-y-1">
-        {sidebarItems.map((item) => {
+        {filteredItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
           

@@ -16,8 +16,11 @@ import { Plus, Eye } from 'lucide-react';
 import { listPrescriptions, type Prescription } from '@/services/prescriptionService';
 import { toast } from 'sonner';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export default function Prescriptions() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -48,10 +51,12 @@ export default function Prescriptions() {
           <h1 className="text-3xl font-bold tracking-tight">Prescriptions</h1>
           <p className="text-muted-foreground">Manage and view patient prescriptions</p>
         </div>
-        <Button onClick={() => navigate('/dashboard/prescriptions/create')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Prescription
-        </Button>
+        {user?.role !== 'PHARMACIST' && (
+          <Button onClick={() => navigate('/dashboard/prescriptions/create')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Prescription
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -67,13 +72,15 @@ export default function Prescriptions() {
           ) : prescriptions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 space-y-2">
               <p className="text-muted-foreground">No prescriptions found</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/dashboard/prescriptions/create')}
-              >
-                Create your first prescription
-              </Button>
+              {user?.role !== 'PHARMACIST' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/dashboard/prescriptions/create')}
+                >
+                  Create your first prescription
+                </Button>
+              )}
             </div>
           ) : (
             <>
