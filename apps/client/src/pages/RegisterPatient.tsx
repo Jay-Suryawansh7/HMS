@@ -53,6 +53,13 @@ export function RegisterPatient() {
     resolver: zodResolver(patientSchema),
     defaultValues: {
       patientType: 'OPD',
+      gender: undefined,
+      dob: '',
+      bloodGroup: '',
+      email: '',
+      address: '',
+      history: '',
+      admissionNotes: '',
     },
   });
 
@@ -253,8 +260,7 @@ export function RegisterPatient() {
                   <Label htmlFor="gender">Gender</Label>
                   <Select 
                     onValueChange={(value) => setValue('gender', value as any)}
-                    defaultValue={watch('gender')}
-                    value={watch('gender')}
+                    value={watch('gender') || ''}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select gender" />

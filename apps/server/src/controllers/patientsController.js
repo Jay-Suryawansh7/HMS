@@ -38,6 +38,7 @@ const patientRegistrationSchema = z.object({
     emergencyContactPhone: z.string().min(10, 'Emergency contact phone must be at least 10 digits'),
     patientType: z.enum(['OPD', 'IPD']),
     history: z.string().optional(),
+    admissionNotes: z.string().optional(),
 });
 
 /**
