@@ -52,7 +52,10 @@ export default function CreateAppointment() {
           'x-tenant-id': tenantId
         }
       });
-      const data = response.data?.data || response.data || [];
+      
+      // Backend returns { data: [...] }
+      const data = response.data?.data || [];
+      console.log('Fetched patients:', data);
       setPatients(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch patients:', error);
@@ -73,9 +76,12 @@ export default function CreateAppointment() {
           'x-tenant-id': tenantId
         }
       });
-      // Filter to only get doctors from the response
-      const data = response.data || [];
-      const doctorsList = Array.isArray(data) ? data.filter((staff: any) => staff.role === 'DOCTOR') : [];
+      
+      // Backend returns { staff: [...] }
+      const staffData = response.data?.staff || [];
+      console.log('Fetched staff:', staffData);
+      const doctorsList = Array.isArray(staffData) ? staffData.filter((staff: any) => staff.role === 'DOCTOR') : [];
+      console.log('Filtered doctors:', doctorsList);
       setDoctors(doctorsList);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
