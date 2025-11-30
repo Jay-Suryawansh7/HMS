@@ -63,6 +63,8 @@ exports.getHospitals = async (req, res) => {
             let stats = {
                 doctors: 0,
                 nurses: 0,
+                receptionists: 0,
+                pharmacists: 0,
                 staff: 0,
                 patients: 0
             };
@@ -81,6 +83,8 @@ exports.getHospitals = async (req, res) => {
                 usersCount.rows.forEach(row => {
                     if (row.role === 'DOCTOR') stats.doctors = parseInt(row.count);
                     else if (row.role === 'NURSE') stats.nurses = parseInt(row.count);
+                    else if (row.role === 'RECEPTIONIST') stats.receptionists = parseInt(row.count);
+                    else if (row.role === 'PHARMACIST') stats.pharmacists = parseInt(row.count);
                     else if (row.role !== 'ADMIN') stats.staff += parseInt(row.count); // Other staff
                 });
 

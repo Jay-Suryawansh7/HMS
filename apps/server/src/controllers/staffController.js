@@ -13,7 +13,7 @@ exports.addStaff = async (req, res) => {
         }
 
         // Validate role
-        const validRoles = ['ADMIN', 'DOCTOR', 'NURSE', 'STAFF'];
+        const validRoles = ['ADMIN', 'DOCTOR', 'NURSE', 'STAFF', 'RECEPTIONIST', 'PHARMACIST'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }

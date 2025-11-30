@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Activity, Users, Building2, Stethoscope, 
-  LogOut, Shield, Search
+  LogOut, Shield, Search, Phone, Pill
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ interface Hospital {
   stats: {
     doctors: number;
     nurses: number;
+    receptionists: number;
+    pharmacists: number;
     staff: number;
     patients: number;
   };
@@ -110,6 +112,8 @@ export function Dashboard() {
   const totalHospitals = hospitals.length;
   const totalDoctors = hospitals.reduce((acc, h) => acc + h.stats.doctors, 0);
   const totalPatients = hospitals.reduce((acc, h) => acc + h.stats.patients, 0);
+  const totalReceptionists = hospitals.reduce((acc, h) => acc + (h.stats.receptionists || 0), 0);
+  const totalPharmacists = hospitals.reduce((acc, h) => acc + (h.stats.pharmacists || 0), 0);
   const activeHospitals = hospitals.filter(h => h.status === 'ACTIVE').length;
 
   if (loading) {
@@ -143,6 +147,8 @@ export function Dashboard() {
           <StatsCard icon={Building2} title="Total Hospitals" value={totalHospitals} subtext={`${activeHospitals} Active`} />
           <StatsCard icon={Stethoscope} title="Total Doctors" value={totalDoctors} subtext="Across all hospitals" />
           <StatsCard icon={Users} title="Total Patients" value={totalPatients} subtext="Registered patients" />
+          <StatsCard icon={Phone} title="Receptionists" value={totalReceptionists} subtext="Front desk staff" />
+          <StatsCard icon={Pill} title="Pharmacists" value={totalPharmacists} subtext="Pharmacy staff" />
           <StatsCard icon={Activity} title="System Health" value="99.9%" subtext="Uptime" />
         </div>
 
@@ -171,6 +177,8 @@ export function Dashboard() {
                     <TableHead className="text-slate-400">Status</TableHead>
                     <TableHead className="text-slate-400">Doctors</TableHead>
                     <TableHead className="text-slate-400">Nurses</TableHead>
+                    <TableHead className="text-slate-400">Receptionists</TableHead>
+                    <TableHead className="text-slate-400">Pharmacists</TableHead>
                     <TableHead className="text-slate-400">Patients</TableHead>
                     <TableHead className="text-right text-slate-400">Actions</TableHead>
                   </TableRow>
@@ -194,6 +202,8 @@ export function Dashboard() {
                       </TableCell>
                       <TableCell className="text-slate-300">{hospital.stats.doctors}</TableCell>
                       <TableCell className="text-slate-300">{hospital.stats.nurses}</TableCell>
+                      <TableCell className="text-slate-300">{hospital.stats.receptionists || 0}</TableCell>
+                      <TableCell className="text-slate-300">{hospital.stats.pharmacists || 0}</TableCell>
                       <TableCell className="text-slate-300">{hospital.stats.patients}</TableCell>
                       <TableCell className="text-right">
                         <Button
