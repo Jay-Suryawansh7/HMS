@@ -48,7 +48,7 @@ exports.createAppointment = async (req, res) => {
     const client = await pool.connect();
     try {
         const dbName = req.tenantDbName; // From auth middleware
-        const { patientId, doctorId, time, status, reason } = req.body;
+        const { patientId, doctorId, time, status } = req.body;
 
         if (!dbName) {
             return res.status(500).json({ message: 'Tenant database not resolved' });
@@ -63,10 +63,10 @@ exports.createAppointment = async (req, res) => {
         await client.query(`SET search_path TO "${dbName}"`);
 
         const result = await client.query(`
-            INSERT INTO appointments (patient_id, doctor_id, time, status, reason)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO appointments (patient_id, doctor_id, time, status)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
-        `, [patientId, doctorId, time, status || 'SCHEDULED', reason || null]);
+        `, [patientId, doctorId, time, status || 'SCHEDULED']);
 
         res.status(201).json({
             success: true,
