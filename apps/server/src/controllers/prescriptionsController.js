@@ -150,12 +150,28 @@ exports.getPrescription = async (req, res) => {
 
         const { id } = req.params;
 
-        // Get prescription
-        let prescriptionQuery = 'SELECT * FROM prescriptions WHERE prescription_id = $1';
+        // Get prescription with doctor and patient details
+        let prescriptionQuery = `
+            SELECT p.*, 
+                   u.name as doctor_name,
+                   pat.first_name || ' ' || pat.last_name as patient_name
+            FROM prescriptions p
+            LEFT JOIN users u ON p.doctor_id = u.id
+            LEFT JOIN patients pat ON p.patient_id = pat.id
+            WHERE p.prescription_id = $1
+        `;
         let prescriptionParams = [id];
 
-        if (/^\\d+$/.test(id)) {
-            prescriptionQuery = 'SELECT * FROM prescriptions WHERE id = $1 OR prescription_id = $2';
+        if (/^\d+$/.test(id)) {
+            prescriptionQuery = `
+                SELECT p.*, 
+                       u.name as doctor_name,
+                       pat.first_name || ' ' || pat.last_name as patient_name
+                FROM prescriptions p
+                LEFT JOIN users u ON p.doctor_id = u.id
+                LEFT JOIN patients pat ON p.patient_id = pat.id
+                WHERE p.id = $1 OR p.prescription_id = $2
+            `;
             prescriptionParams = [parseInt(id), id];
         }
 
@@ -173,6 +189,8 @@ exports.getPrescription = async (req, res) => {
 
         res.json({
             ...mapPrescription(prescription),
+            doctorName: prescription.doctor_name,
+            patientName: prescription.patient_name,
             medicines: itemsResult.rows.map(mapPrescriptionItem),
         });
     } catch (error) {
