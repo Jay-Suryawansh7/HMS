@@ -43,8 +43,14 @@ export default function CreateAppointment() {
   const fetchPatients = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenantId;
+      
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/patients`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'x-tenant-id': tenantId
+        }
       });
       const data = response.data?.data || response.data || [];
       setPatients(Array.isArray(data) ? data : []);
@@ -58,11 +64,19 @@ export default function CreateAppointment() {
   const fetchDoctors = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/staff?role=DOCTOR`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenantId;
+      
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/staff`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'x-tenant-id': tenantId
+        }
       });
+      // Filter to only get doctors from the response
       const data = response.data || [];
-      setDoctors(Array.isArray(data) ? data : []);
+      const doctorsList = Array.isArray(data) ? data.filter((staff: any) => staff.role === 'DOCTOR') : [];
+      setDoctors(doctorsList);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
       toast.error('Failed to load doctors');
@@ -76,6 +90,8 @@ export default function CreateAppointment() {
 
     try {
       const token = localStorage.getItem('accessToken');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenantId;
       
       // Combine date and time into ISO string
       const dateTime = new Date(`${formData.date}T${formData.time}`);
@@ -90,7 +106,10 @@ export default function CreateAppointment() {
           reason: formData.reason
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'x-tenant-id': tenantId
+          }
         }
       );
 
