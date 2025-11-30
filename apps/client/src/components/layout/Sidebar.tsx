@@ -24,12 +24,23 @@ export function Sidebar() {
   };
 
   const filteredItems = sidebarItems.filter(item => {
+    // Settings page only visible to Admin
     if (item.label === 'Settings') {
       return user?.role === 'ADMIN';
     }
+    
+    // Admin should NOT see Appointments and Prescriptions (staff management only)
+    if (user?.role === 'ADMIN') {
+      if (item.label === 'Appointments' || item.label === 'Prescriptions') {
+        return false;
+      }
+    }
+    
+    // Receptionist should not see Prescriptions
     if (item.label === 'Prescriptions') {
       return user?.role !== 'RECEPTIONIST';
     }
+    
     return true;
   });
 
