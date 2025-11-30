@@ -13,7 +13,7 @@ async function migratePatients() {
 
         // Get all tenant schemas
         const tenantsResult = await client.query(`
-            SELECT db_name FROM tenants WHERE status IN ('ACTIVE', 'VERIFIED')
+            SELECT db_name FROM tenants
         `);
 
         console.log(`Found ${tenantsResult.rows.length} tenant(s) to migrate`);
